@@ -90,25 +90,35 @@ def partita(giocatori: dict, tabellone: list[list[str]]) -> None:
 def main() -> None:
     """Gestisce la sfida al meglio dei tre e dichiara il vincitore finale."""
     print("Benvenuti in tic tac toe! \n")
-    tabellone = inizializza_tabellone()
-    simboli = ["O", "X"]
-    shuffle(simboli)
-    name_player1 = input("Inserisci il nome del primo giocatore: ")
-    name_player2 = input("Inserisci il nome del secondo giocatore: ")
-    print("")
-    giocatori = {
-        "player1": {
-            "nome": name_player1,
-            "simbolo": simboli[0],
-            "vittorie": 0
-            },
-        "player2": {
-            "nome": name_player2,
-            "simbolo": simboli[1],
-            "vittorie": 0
+    for i in range(3):
+        tabellone = inizializza_tabellone()
+        simboli = ["O", "X"]
+        shuffle(simboli)
+        name_player1 = input("Inserisci il nome del primo giocatore: ")
+        name_player2 = input("Inserisci il nome del secondo giocatore: ")
+        print("")
+        giocatori = {
+            "player1": {
+                "nome": name_player1,
+                "simbolo": simboli[0],
+                "vittorie": 0
+                },
+            "player2": {
+                "nome": name_player2,
+                "simbolo": simboli[1],
+                "vittorie": 0
+            }
         }
-    }
-    partita(giocatori, tabellone)
+        partita(giocatori, tabellone)
+    if giocatori["player1"]["vittorie"] > giocatori["player2"]["vittorie"]:
+        print("")
+        print(f"Il vincitore è {giocatori['player1']['nome']} con {giocatori['player1']['vittorie']} vittorie!")
+    elif giocatori["player1"]["vittorie"] < giocatori["player2"]["vittorie"]:
+        print("")
+        print(f"Il vincitore è {giocatori['player2']['nome']} con {giocatori['player2']['vittorie']} vittorie!")
+    else:
+        print("")
+        print("Pareggio tra i due giocatori!")
 
 if __name__ == "__main__":
     main()
