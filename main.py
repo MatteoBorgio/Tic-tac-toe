@@ -114,18 +114,15 @@ def main() -> None:
             "vittorie": 0
         }
     }
-    for _ in range(3):
+    while True:
         tabellone = inizializza_tabellone()
         if giocatori["player1"]["vittorie"] == 2 or giocatori["player2"]["vittorie"] == 2:
             break
         partita(giocatori, tabellone, simboli)
     if giocatori["player1"]["vittorie"] > giocatori["player2"]["vittorie"]:
-        print(f"Il vincitore è {giocatori['player1']['nome']} con {giocatori['player1']['vittorie']} vittorie!")
-    elif giocatori["player1"]["vittorie"] < giocatori["player2"]["vittorie"]:
-        print(f"Il vincitore è {giocatori['player2']['nome']} con {giocatori['player2']['vittorie']} vittorie!")
+        print(f"Il vincitore è {giocatori['player1']['nome']}!")
     else:
-        print("Pareggio tra i due giocatori!")
+        print(f"Il vincitore è {giocatori['player2']['nome']}!")
 
 if __name__ == "__main__":
     main()
-
