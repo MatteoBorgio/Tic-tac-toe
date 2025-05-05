@@ -1,4 +1,6 @@
 from random import shuffle
+from random import choice
+from copy import deepcopy
 
 def inizializza_tabellone() -> list[list[str]]:
     """Crea e restituisce una matrice 3x3 vuota."""
@@ -16,13 +18,41 @@ def mostra_tabellone(tabellone: list[list[str]]) -> None:
         print(" ".join(riga))
     print("")
 
+def trova_mosse_possibili(tabellone: list[list[str]]) -> list[tuple[int, int]]:
+    """Restituisce una lista di tuple contenenti le posizioni vuote nel tabellone"""
+    mosse_possibili = []
+    for i in range(len(tabellone)):
+        for j in range(len(tabellone[i])):
+            if tabellone[i][j] == '_':
+                mosse_possibili.append((i, j))
+    return mosse_possibili
+
+def turno_bot(tabellone: list[list[str]], simbolo: str, simbolo_avversario: str, mosse_possibili:list[tuple[int, int]]) -> None:
+    """Gestisce il turno del bot, che seleziona una mossa casuale, a meno che non ci sia una mossa vincente o perdente."""
+    copia_tabellone = deepcopy(tabellone)
+    for mossa in mosse_possibili:
+        riga, colonna = mossa
+        copia_tabellone[riga][colonna] = simbolo
+        if verifica_vittoria(copia_tabellone) == simbolo:
+            tabellone[riga][colonna] = simbolo
+            return None
+        copia_tabellone[riga][colonna] = '_'
+        copia_tabellone[riga][colonna] = simbolo_avversario
+        if verifica_vittoria(copia_tabellone) == simbolo_avversario:
+            tabellone[riga][colonna] = simbolo
+            return None
+        copia_tabellone[riga][colonna] = '_'
+    riga, colonna = choice(mosse_possibili)
+    tabellone[riga][colonna] = simbolo
+    return None
+
 def gioca_turno(tabellone: list[list[str]], giocatore: str) -> None:
     """Gestisce l'input del giocatore e aggiorna il tabellone."""
     while True:
         while True:
             try:
-                riga = int(input("Inserisci la riga in cui vuoi inserire il simbolo: "))
-                if riga >= len(tabellone) or riga < 0:
+                riga = int(input("Inserisci la riga in cui vuoi inserire il simbolo: ")) 
+                if (riga) >= len(tabellone) + 1 or riga < 1:
                     raise ValueError
                 break
             except ValueError:
@@ -31,15 +61,15 @@ def gioca_turno(tabellone: list[list[str]], giocatore: str) -> None:
             try:
                 colonna = int(input("Inserisci la colonna in cui vuoi inserire il simbolo: "))
                 print("")
-                if colonna >= len(tabellone[0]) or colonna < 0:
+                if colonna >= len(tabellone[0]) + 1 or colonna < 1:
                     raise ValueError
                 break
             except:
                 print("Inserisci un numero valido!")
-        if tabellone[riga][colonna] != '_':
+        if tabellone[riga - 1][colonna - 1] != '_':
             print("Questa casella è già occupata!\n")
         else:
-            tabellone[riga][colonna] = giocatore
+            tabellone[riga - 1][colonna - 1] = giocatore
             return None
 def verifica_vittoria(tabellone: list[list[str]]) -> None | str:
     """Verifica se c'è un vincitore e restituisce il segno vincente (X, O o None se non trova vincitori)"""
@@ -56,7 +86,7 @@ def verifica_vittoria(tabellone: list[list[str]]) -> None | str:
 
 def aggiorna_punteggio(giocatori: dict, segno_vincente: str) -> None:
     """Aggiorna il punteggio del giocatore vincente e stampa il vincitore."""
-    for key in ["player1", "player2"]:
+    for key in ["umano", "bot"]:
         if giocatori[key]["simbolo"] == segno_vincente:
             giocatori[key]["vittorie"] += 1
             print("")
@@ -69,13 +99,13 @@ def partita(giocatori: dict, tabellone: list[list[str]], simboli: list[str]) -> 
     """Gestisce il flusso principale del gioco, alternando i turni e determinando il risultato finale."""
     segno_vincente = None
     shuffle(simboli)
-    giocatori["player1"]["simbolo"] = simboli[0]
-    giocatori["player2"]["simbolo"] = simboli[1]
-    print(f"Il giocatore {giocatori['player1']['nome']} ha il simbolo {giocatori['player1']['simbolo']}\n")
-    print(f"Il giocatore {giocatori['player2']['nome']} ha il simbolo {giocatori['player2']['simbolo']}\n")
+    giocatori["umano"]["simbolo"] = simboli[0]
+    giocatori["bot"]["simbolo"] = simboli[1]
+    print(f"Il giocatore {giocatori['umano']['nome']} ha il simbolo {giocatori['umano']['simbolo']}\n")
+    print(f"Il giocatore {giocatori['bot']['nome']} ha il simbolo {giocatori['bot']['simbolo']}\n")
     mostra_tabellone(tabellone)
     while True:
-        gioca_turno(tabellone, giocatori["player1"]["simbolo"])
+        gioca_turno(tabellone, giocatori["umano"]["simbolo"])
         mostra_tabellone(tabellone)
         segno_vincente = verifica_vittoria(tabellone)
         if segno_vincente is not None:
@@ -83,7 +113,8 @@ def partita(giocatori: dict, tabellone: list[list[str]], simboli: list[str]) -> 
         if all('_' not in riga for riga in tabellone): 
             print("Pareggio!")  
             return  
-        gioca_turno(tabellone, giocatori["player2"]["simbolo"])
+        print("Turno del bot: \n")
+        turno_bot(tabellone, giocatori["bot"]["simbolo"], giocatori["umano"]["simbolo"], trova_mosse_possibili(tabellone))
         mostra_tabellone(tabellone)
         segno_vincente = verifica_vittoria(tabellone)
         if segno_vincente is not None:
@@ -99,30 +130,29 @@ def main() -> None:
     print("Benvenuti in tic tac toe! \n")
     simboli = ["O", "X"]
     shuffle(simboli)
-    name_player1 = input("Inserisci il nome del primo giocatore: ")
-    name_player2 = input("Inserisci il nome del secondo giocatore: ")
+    name = input("Inserisci il tuo nome: ")
     print("")
     giocatori = {
-        "player1": {
-            "nome": name_player1,
+        "umano": {
+            "nome": name,
             "simbolo": simboli[0],
             "vittorie": 0
             },
-        "player2": {
-            "nome": name_player2,
+        "bot": {
+            "nome": "bot",
             "simbolo": simboli[1],
             "vittorie": 0
         }
     }
     while True:
         tabellone = inizializza_tabellone()
-        if giocatori["player1"]["vittorie"] == 2 or giocatori["player2"]["vittorie"] == 2:
+        if giocatori["umano"]["vittorie"] == 2 or giocatori["bot"]["vittorie"] == 2:
             break
         partita(giocatori, tabellone, simboli)
-    if giocatori["player1"]["vittorie"] > giocatori["player2"]["vittorie"]:
-        print(f"Il vincitore è {giocatori['player1']['nome']}!")
+    if giocatori["umano"]["vittorie"] > giocatori["bot"]["vittorie"]:
+        print(f"Il vincitore è {giocatori['umano']['nome']}!")
     else:
-        print(f"Il vincitore è {giocatori['player2']['nome']}!")
+        print(f"Il vincitore è {giocatori['bot']['nome']}!")
 
 if __name__ == "__main__":
     main()
