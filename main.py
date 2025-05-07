@@ -42,11 +42,14 @@ def turno_bot(tabellone: list[list[str]], simbolo: str, simbolo_avversario: str,
             tabellone[riga][colonna] = simbolo
             return None
         copia_tabellone[riga][colonna] = '_'
+        if tabellone[1][1] == '_':
+            tabellone[1][1] = simbolo
+            return None
     riga, colonna = choice(mosse_possibili)
     tabellone[riga][colonna] = simbolo
     return None
 
-def gioca_turno(tabellone: list[list[str]], giocatore: str) -> None:
+def turno_umano(tabellone: list[list[str]], giocatore: str) -> None:
     """Gestisce l'input del giocatore e aggiorna il tabellone."""
     while True:
         while True:
@@ -95,8 +98,25 @@ def aggiorna_punteggio(giocatori: dict, segno_vincente: str) -> None:
             print("")
             return None
 
+def trova_vincitore(tabellone: list[list[str]]) -> str|None:
+        segno_vincente = verifica_vittoria(tabellone)
+        if segno_vincente is not None:
+            return segno_vincente
+        if all('_' not in riga for riga in tabellone):
+            return "pareggio"
+        return None
+        
+def gioca_turno(tabellone: list[list[str]], giocatore: dict, segno_avversario: str) -> None:
+    if giocatore["nome"] == "bot":
+        print("Turno del bot: \n")
+        turno_bot(tabellone, giocatore["simbolo"], segno_avversario, trova_mosse_possibili(tabellone))
+    else:
+        turno_umano(tabellone, giocatore["simbolo"])
+    mostra_tabellone(tabellone)
+
 def partita(giocatori: dict, tabellone: list[list[str]], simboli: list[str]) -> None:
     """Gestisce il flusso principale del gioco, alternando i turni e determinando il risultato finale."""
+    gioco_in_corso = True
     segno_vincente = None
     shuffle(simboli)
     giocatori["umano"]["simbolo"] = simboli[0]
@@ -104,24 +124,24 @@ def partita(giocatori: dict, tabellone: list[list[str]], simboli: list[str]) -> 
     print(f"Il giocatore {giocatori['umano']['nome']} ha il simbolo {giocatori['umano']['simbolo']}\n")
     print(f"Il giocatore {giocatori['bot']['nome']} ha il simbolo {giocatori['bot']['simbolo']}\n")
     mostra_tabellone(tabellone)
-    while True:
-        gioca_turno(tabellone, giocatori["umano"]["simbolo"])
-        mostra_tabellone(tabellone)
-        segno_vincente = verifica_vittoria(tabellone)
-        if segno_vincente is not None:
-            break  
-        if all('_' not in riga for riga in tabellone): 
-            print("Pareggio!")  
-            return  
-        print("Turno del bot: \n")
-        turno_bot(tabellone, giocatori["bot"]["simbolo"], giocatori["umano"]["simbolo"], trova_mosse_possibili(tabellone))
-        mostra_tabellone(tabellone)
-        segno_vincente = verifica_vittoria(tabellone)
-        if segno_vincente is not None:
-            break  
-        if all('_' not in riga for riga in tabellone):  
-            print("Pareggio!")  
-            return 
+    if giocatori["umano"]["simbolo"] == "X":
+        lista_giocatori = ["umano", "bot"]
+    else:
+        lista_giocatori = ["bot", "umano"]
+    while gioco_in_corso:
+        for giocatore in lista_giocatori:
+            avversario = "umano" if giocatore == "bot" else "bot"
+            gioca_turno(tabellone, giocatori[giocatore], giocatori[avversario]["simbolo"])
+            segno_vincente = trova_vincitore(tabellone)
+            if segno_vincente is not None:
+                if segno_vincente == "pareggio":
+                    print("Pareggio!\n")
+                    gioco_in_corso = False
+                    break
+                else:
+                    print(f"Il vincitore è {giocatori[giocatore]['nome']}!\n")
+                    gioco_in_corso = False
+                    break
     aggiorna_punteggio(giocatori, segno_vincente)
 
 def main() -> None:
